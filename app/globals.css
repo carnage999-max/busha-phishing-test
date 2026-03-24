@@ -978,6 +978,41 @@ textarea:focus {
   width: min(1200px, calc(100% - 2rem));
 }
 
+.admin-login-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.admin-login-card {
+  width: min(32rem, 100%);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: 2rem;
+}
+
+.admin-login-card h1 {
+  margin: 0.35rem 0 0.6rem;
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.admin-login-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.admin-login-form {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .admin-hero {
   padding: 2rem;
 }

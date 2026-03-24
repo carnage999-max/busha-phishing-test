@@ -6,7 +6,7 @@ Single-page Next.js phishing awareness course with:
 - scored quiz submission
 - database-backed submission storage
 - Resend emails to the learner and admin
-- simple `/admin` dashboard protected with basic auth
+- simple `/admin` dashboard protected with an admin login
 
 ## Setup
 

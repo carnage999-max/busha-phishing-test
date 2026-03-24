@@ -3,21 +3,13 @@ import { NextResponse } from "next/server";
 import {
   ADMIN_SESSION_COOKIE,
   createAdminSessionToken,
-  decodeBasicAuthorizationHeader,
   getAdminCredentials,
+  isAdminPublicRoute,
   isAdminRoute
 } from "@/lib/auth";
 
-function unauthorizedResponse() {
-  const response = new NextResponse("Authentication required", {
-    status: 401,
-    headers: {
-      "WWW-Authenticate": 'Basic realm="Busha Admin"'
-    }
-  });
-
+function clearAdminSession(response: NextResponse) {
   response.cookies.delete(ADMIN_SESSION_COOKIE);
-
   return response;
 }
 
@@ -32,49 +24,35 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const expectedSessionToken = await createAdminSessionToken(
-    credentials.username,
-    credentials.password
-  );
+  const expectedSessionToken = await createAdminSessionToken(credentials.username, credentials.password);
   const existingSessionToken =
     request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+
+  if (isAdminPublicRoute(request.nextUrl.pathname)) {
+    if (existingSessionToken === expectedSessionToken) {
+      return NextResponse.redirect(new URL("/admin", request.url));
+    }
+
+    return clearAdminSession(NextResponse.next());
+  }
 
   if (existingSessionToken === expectedSessionToken) {
     return NextResponse.next();
   }
 
-  const authorization = request.headers.get("authorization");
-
-  if (!authorization) {
-    return unauthorizedResponse();
+  if (request.nextUrl.pathname.startsWith("/api/admin")) {
+    return clearAdminSession(
+      NextResponse.json({ ok: false, message: "Unauthorized" }, { status: 401 })
+    );
   }
 
-  const parsedCredentials = decodeBasicAuthorizationHeader(authorization);
+  const loginUrl = new URL("/admin/login", request.url);
+  loginUrl.searchParams.set(
+    "next",
+    `${request.nextUrl.pathname}${request.nextUrl.search}`
+  );
 
-  if (!parsedCredentials) {
-    return unauthorizedResponse();
-  }
-
-  if (
-    parsedCredentials.username !== credentials.username ||
-    parsedCredentials.password !== credentials.password
-  ) {
-    return unauthorizedResponse();
-  }
-
-  const response = NextResponse.next();
-
-  response.cookies.set({
-    name: ADMIN_SESSION_COOKIE,
-    value: expectedSessionToken,
-    httpOnly: true,
-    sameSite: "lax",
-    secure: request.nextUrl.protocol === "https:",
-    path: "/",
-    maxAge: 60 * 60 * 12
-  });
-
-  return response;
+  return clearAdminSession(NextResponse.redirect(loginUrl));
 }
 
 export const config = {

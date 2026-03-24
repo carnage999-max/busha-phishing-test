@@ -1,40 +1,39 @@
 export const ADMIN_SESSION_COOKIE = "busha_admin_session";
 
+function normalizeEnvCredential(value?: string) {
+  if (!value) {
+    return "";
+  }
+
+  const trimmed = value.trim();
+
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}
+
 export function isAdminRoute(pathname: string) {
   return pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
 }
 
+export function isAdminPublicRoute(pathname: string) {
+  return pathname === "/admin/login" || pathname === "/api/admin/login";
+}
+
 export function getAdminCredentials() {
-  const username = process.env.ADMIN_USERNAME?.trim();
-  const password = process.env.ADMIN_PASSWORD?.trim();
+  const username = normalizeEnvCredential(process.env.ADMIN_USERNAME);
+  const password = normalizeEnvCredential(process.env.ADMIN_PASSWORD);
 
   if (!username || !password) {
     return null;
   }
 
   return { username, password };
-}
-
-export function decodeBasicAuthorizationHeader(authorization: string) {
-  if (!authorization.startsWith("Basic ")) {
-    return null;
-  }
-
-  try {
-    const decoded = atob(authorization.slice("Basic ".length));
-    const separatorIndex = decoded.indexOf(":");
-
-    if (separatorIndex < 0) {
-      return null;
-    }
-
-    return {
-      username: decoded.slice(0, separatorIndex),
-      password: decoded.slice(separatorIndex + 1)
-    };
-  } catch {
-    return null;
-  }
 }
 
 function toBase64(bytes: Uint8Array) {
