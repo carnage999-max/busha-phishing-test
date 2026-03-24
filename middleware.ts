@@ -1,17 +1,27 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getAdminCredentials, isAdminRoute } from "@/lib/auth";
+import {
+  ADMIN_SESSION_COOKIE,
+  createAdminSessionToken,
+  decodeBasicAuthorizationHeader,
+  getAdminCredentials,
+  isAdminRoute
+} from "@/lib/auth";
 
 function unauthorizedResponse() {
-  return new NextResponse("Authentication required", {
+  const response = new NextResponse("Authentication required", {
     status: 401,
     headers: {
       "WWW-Authenticate": 'Basic realm="Busha Admin"'
     }
   });
+
+  response.cookies.delete(ADMIN_SESSION_COOKIE);
+
+  return response;
 }
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   if (!isAdminRoute(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -22,23 +32,49 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const expectedSessionToken = await createAdminSessionToken(
+    credentials.username,
+    credentials.password
+  );
+  const existingSessionToken =
+    request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+
+  if (existingSessionToken === expectedSessionToken) {
+    return NextResponse.next();
+  }
+
   const authorization = request.headers.get("authorization");
 
-  if (!authorization?.startsWith("Basic ")) {
+  if (!authorization) {
     return unauthorizedResponse();
   }
 
-  const decoded = atob(authorization.replace("Basic ", ""));
-  const [username, password] = decoded.split(":");
+  const parsedCredentials = decodeBasicAuthorizationHeader(authorization);
+
+  if (!parsedCredentials) {
+    return unauthorizedResponse();
+  }
 
   if (
-    username !== credentials.username ||
-    password !== credentials.password
+    parsedCredentials.username !== credentials.username ||
+    parsedCredentials.password !== credentials.password
   ) {
     return unauthorizedResponse();
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  response.cookies.set({
+    name: ADMIN_SESSION_COOKIE,
+    value: expectedSessionToken,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: request.nextUrl.protocol === "https:",
+    path: "/",
+    maxAge: 60 * 60 * 12
+  });
+
+  return response;
 }
 
 export const config = {

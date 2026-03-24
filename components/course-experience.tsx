@@ -399,6 +399,7 @@ export function CourseExperience({
         aria-label="Open admin dashboard"
         className="floating-admin-link"
         href="/admin"
+        prefetch={false}
       >
         Admin
       </Link>
