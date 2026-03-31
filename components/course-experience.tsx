@@ -448,12 +448,6 @@ export function CourseExperience({
                 <button className="primary-button" onClick={() => openLesson(1)}>
                   Start training
                 </button>
-                <button
-                  className="ghost-button"
-                  onClick={() => setView("assessment")}
-                >
-                  Jump to assessment
-                </button>
               </div>
             </div>
 
