@@ -1,3 +1,4 @@
+import { AdminInviteSender } from "@/components/admin-invite-sender";
 import { AdminQuestionManager } from "@/components/admin-question-manager";
 import { AdminSubmissionManager } from "@/components/admin-submission-manager";
 import { getQuizQuestions, getRecentSubmissions } from "@/lib/db";
@@ -6,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
   const [submissions, questions] = await Promise.all([
-    getRecentSubmissions(30),
+    getRecentSubmissions(50),
     getQuizQuestions()
   ]);
 
@@ -14,14 +15,27 @@ export default async function AdminPage() {
     <main className="admin-shell">
       <section className="admin-hero">
         <p className="eyebrow">Protected admin</p>
-        <h1>Recent phishing test takers</h1>
+        <h1>Phishing training dashboard</h1>
         <p>
-          Review recent submissions, resend retake links, and manage the live
-          quiz questions used on the public course page.
+          Send batch training invitations, review submissions, send retake links,
+          and manage the live quiz question bank.
         </p>
       </section>
 
-      <AdminSubmissionManager submissions={submissions} />
+      <AdminInviteSender />
+
+      <section className="admin-submissions-section">
+        <div className="admin-section-copy">
+          <p className="eyebrow">Submissions</p>
+          <h2>Recent test takers</h2>
+          <p>
+            Select one or more rows, then send personalised retake links with an
+            optional message. Each link is valid for 24 hours and single-use.
+          </p>
+        </div>
+
+        <AdminSubmissionManager submissions={submissions} />
+      </section>
 
       <section className="admin-question-section">
         <div className="admin-section-copy">

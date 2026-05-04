@@ -1314,3 +1314,200 @@ textarea:focus {
     font-size: 0.92rem;
   }
 }
+
+/* ── Admin invite sender ──────────────────────────────────────────────── */
+
+.admin-invite-section {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.invite-form {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.invite-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.invite-textarea {
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.invite-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.invite-count {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--gold);
+  background: rgba(255, 191, 85, 0.1);
+  border: 1px solid rgba(255, 191, 85, 0.2);
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+}
+
+.invite-count-empty {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.invite-preview {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.invite-preview ul {
+  list-style: none;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.invite-preview li {
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ── Admin submissions section ────────────────────────────────────────── */
+
+.admin-submissions-section {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Bulk action bar ──────────────────────────────────────────────────── */
+
+.bulk-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(247, 179, 71, 0.22);
+  border-radius: 18px;
+  background: rgba(247, 179, 71, 0.07);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--gold);
+  animation: rise-in 0.22s ease;
+}
+
+.bulk-action-bar .primary-button,
+.bulk-action-bar .ghost-button {
+  padding: 0.65rem 1.1rem;
+  font-size: 0.9rem;
+}
+
+/* ── Table row selection ──────────────────────────────────────────────── */
+
+.admin-table input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--signal);
+  cursor: pointer;
+}
+
+.admin-table .row-selected td {
+  background: rgba(64, 140, 255, 0.06);
+}
+
+/* ── Retake modal ─────────────────────────────────────────────────────── */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(4, 10, 22, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fade-in 0.18s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.modal-box {
+  width: min(32rem, 100%);
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+  border-radius: 28px;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+  padding: 2rem;
+  animation: rise-in 0.25s ease;
+}
+
+.modal-box h3 {
+  margin: 0 0 0.5rem;
+  font-family: "Syne", "Avenir Next", sans-serif;
+  font-size: 1.5rem;
+}
+
+.modal-sub {
+  margin: 0 0 1.25rem;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+.modal-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+}
+
+.modal-textarea {
+  resize: vertical;
+  min-height: 7rem;
+  font-size: 0.93rem;
+  line-height: 1.65;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+/* ── CSS variables used in AccessGate ───────────────────────────────── */
+
+:root {
+  --text-primary: var(--text);
+  --text-secondary: var(--muted);
+  --accent: var(--signal);
+}

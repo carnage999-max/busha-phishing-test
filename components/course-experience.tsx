@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import {
   lessons,
@@ -208,15 +206,19 @@ function renderSection(section: LessonSection) {
 }
 
 export function CourseExperience({
-  questions
+  questions,
+  token,
+  tokenEmail
 }: {
   questions: QuizQuestion[];
+  token: string;
+  tokenEmail: string;
 }) {
   const [view, setView] = useState<View>("welcome");
   const [logoError, setLogoError] = useState(false);
   const [participant, setParticipant] = useState<Participant>({
     fullName: "",
-    email: ""
+    email: tokenEmail
   });
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizIndex, setQuizIndex] = useState(0);
@@ -227,7 +229,6 @@ export function CourseExperience({
     useState<SubmissionResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState("");
-  const searchParams = useSearchParams();
 
   const totalQuestions = questions.length;
   const currentQuestion = questions[quizIndex] ?? null;
@@ -242,12 +243,6 @@ export function CourseExperience({
       setSubmissionError("");
     }
   }, [view]);
-
-  useEffect(() => {
-    if (searchParams.get("start") === "assessment") {
-      setView("assessment");
-    }
-  }, [searchParams]);
 
   function resetQuizState() {
     setQuizStarted(false);
@@ -320,6 +315,7 @@ export function CourseExperience({
         body: JSON.stringify({
           fullName: participant.fullName,
           email: participant.email,
+          token,
           answers: finalAnswers.map((answer) => ({
             questionId: answer.questionId,
             selectedIndex: answer.selectedIndex
@@ -374,18 +370,6 @@ export function CourseExperience({
     setView("welcome");
   }
 
-  function retakeAssessment() {
-    setView("assessment");
-    setQuizStarted(false);
-    setQuizIndex(0);
-    setSelectedIndex(null);
-    setCheckedAnswer(false);
-    setAnswerLog([]);
-    setSubmissionResult(null);
-    setIsSubmitting(false);
-    setSubmissionError("");
-  }
-
   const resultSummary = getResultCopy(
     submissionResult?.score ?? liveScore,
     totalQuestions
@@ -395,14 +379,6 @@ export function CourseExperience({
     <main className="course-shell">
       <div className="ambient ambient-one" />
       <div className="ambient ambient-two" />
-      <Link
-        aria-label="Open admin dashboard"
-        className="floating-admin-link"
-        href="/admin"
-        prefetch={false}
-      >
-        Admin
-      </Link>
 
       <header className="course-header">
         <div className="brand-lockup">
@@ -462,8 +438,8 @@ export function CourseExperience({
                   <span>Scored questions</span>
                 </article>
                 <article>
-                  <strong>1</strong>
-                  <span>Admin overview</span>
+                  <strong>1×</strong>
+                  <span>Single-use link</span>
                 </article>
               </div>
 
@@ -552,9 +528,8 @@ export function CourseExperience({
               <p className="eyebrow">Assessment</p>
               <h2>Score the training and send the result automatically.</h2>
               <p>
-                Learners enter their details once, complete the quiz, and then
-                receive their score by email while the admin inbox gets a simple
-                completion notification.
+                Complete the quiz below. Your score will be emailed to you and
+                your result stored securely.
               </p>
             </div>
 
@@ -575,20 +550,18 @@ export function CourseExperience({
                   <label>
                     Email address
                     <input
-                      onChange={(event) =>
-                        handleParticipantChange("email", event.target.value)
-                      }
-                      required
+                      readOnly
                       type="email"
                       value={participant.email}
+                      style={{ opacity: 0.7, cursor: "not-allowed" }}
                     />
                   </label>
                 </div>
 
                 <div className="participant-footer">
                   <p>
-                    The result will be stored in the database and used for the
-                    learner score email plus the admin notification.
+                    Your email is pre-filled from your training invitation. Your
+                    score will be stored and emailed to you on completion.
                   </p>
                   <button className="primary-button" type="submit">
                     Start quiz
@@ -690,7 +663,7 @@ export function CourseExperience({
                   )}
 
                   <button className="text-button" onClick={restartCourse} type="button">
-                    Restart course
+                    Back to overview
                   </button>
                 </div>
               </div>
@@ -723,13 +696,21 @@ export function CourseExperience({
               </article>
             </div>
 
-            <div className="hero-actions">
-              <button className="primary-button" onClick={retakeAssessment}>
-                Retake assessment
-              </button>
-              <button className="ghost-button" onClick={restartCourse}>
-                Restart training
-              </button>
+            <div
+              style={{
+                marginTop: "24px",
+                padding: "16px 20px",
+                background: "rgba(100,149,237,0.08)",
+                border: "1px solid rgba(100,149,237,0.2)",
+                borderRadius: "12px",
+                color: "var(--text-secondary)",
+                fontSize: "14px",
+                lineHeight: 1.6,
+                textAlign: "center"
+              }}
+            >
+              Your training is complete. If you need to retake this assessment,
+              contact your administrator to request a new invitation link.
             </div>
           </div>
         ) : null}

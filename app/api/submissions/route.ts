@@ -1,5 +1,11 @@
 import { NextResponse } from "next/server";
-import { ensureSchema, getQuizQuestions, getSql } from "@/lib/db";
+import {
+  ensureSchema,
+  getQuizQuestions,
+  getSql,
+  validateAccessToken,
+  markTokenAsUsed
+} from "@/lib/db";
 import { sendSubmissionEmails } from "@/lib/mail";
 
 type SubmittedAnswer = {
@@ -10,29 +16,52 @@ type SubmittedAnswer = {
 type SubmissionPayload = {
   fullName: string;
   email: string;
+  token: string;
   answers: SubmittedAnswer[];
 };
 
 function validatePayload(payload: SubmissionPayload) {
   const fullName = payload.fullName?.trim();
   const email = payload.email?.trim().toLowerCase();
+  const token = payload.token?.trim();
   const answers = Array.isArray(payload.answers) ? payload.answers : [];
 
   if (!fullName || !email) {
     throw new Error("Full name and email are required.");
   }
 
-  return {
-    fullName,
-    email,
-    answers
-  };
+  if (!token) {
+    throw new Error("A valid access token is required.");
+  }
+
+  return { fullName, email, token, answers };
 }
 
 export async function POST(request: Request) {
   try {
     const payload = (await request.json()) as SubmissionPayload;
-    const { fullName, email, answers } = validatePayload(payload);
+    const { fullName, email, token, answers } = validatePayload(payload);
+
+    // Validate the access token
+    const { valid, status, tokenRecord } = await validateAccessToken(token);
+
+    if (!valid) {
+      const message =
+        status === "used"
+          ? "This training link has already been used."
+          : status === "expired"
+            ? "This training link has expired. Please request a new one from your administrator."
+            : "Invalid access token.";
+      return NextResponse.json({ ok: false, message }, { status: 403 });
+    }
+
+    // Ensure the token belongs to the email being submitted
+    if (tokenRecord && tokenRecord.email !== email.trim().toLowerCase()) {
+      return NextResponse.json(
+        { ok: false, message: "This training link is not valid for this email address." },
+        { status: 403 }
+      );
+    }
 
     await ensureSchema();
     const questions = await getQuizQuestions();
@@ -45,7 +74,7 @@ export async function POST(request: Request) {
       throw new Error("Quiz answers are incomplete.");
     }
 
-    const questionMap = new Map(questions.map((question) => [question.id, question]));
+    const questionMap = new Map(questions.map((q) => [q.id, q]));
     const submittedQuestionIds = new Set<number>();
     const normalizedAnswers = answers.map((answer) => {
       if (submittedQuestionIds.has(answer.questionId)) {
@@ -76,9 +105,10 @@ export async function POST(request: Request) {
       };
     });
 
-    const score = normalizedAnswers.reduce((total, answer) => {
-      return total + (answer.isCorrect ? 1 : 0);
-    }, 0);
+    const score = normalizedAnswers.reduce(
+      (total, answer) => total + (answer.isCorrect ? 1 : 0),
+      0
+    );
     const totalQuestions = normalizedAnswers.length;
     const percentage = Math.round((score / totalQuestions) * 100);
     const sql = getSql();
@@ -101,6 +131,9 @@ export async function POST(request: Request) {
         ${JSON.stringify(normalizedAnswers)}::jsonb
       );
     `;
+
+    // Mark the token as used so it cannot be reused
+    await markTokenAsUsed(token);
 
     try {
       await sendSubmissionEmails({
