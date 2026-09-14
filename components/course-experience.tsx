@@ -240,6 +240,7 @@ export function CourseExperience({
 
   useEffect(() => {
     if (view !== "assessment") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting the error banner when leaving the assessment view is intentional
       setSubmissionError("");
     }
   }, [view]);
